@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Cateringowy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --accent: #4cc9f0;
+      --danger: #f72585;
+      --success: #4ad66d;
+      --warning: #f77f00;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --bg-gradient: linear-gradient(135deg, #3a0ca3 0%, #4361ee 50%, #4cc9f0 100%);
+      --glass: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.4);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: var(--bg-gradient);
+      background-size: 400% 400%;
+      padding: 20px;
+      color: var(--dark);
+      line-height: 1.6;
+      animation: gradientFlow 15s ease infinite;
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    #logo-header {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 20px;
+      perspective: 1000px;
+    }
+
+    #system-logo {
+      max-width: 200px;
+      margin-top: 20px;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+      transform-style: preserve-3d;
+      animation: floatLogo 6s ease-in-out infinite;
+    }
+
+    @keyframes floatLogo {
+      0%, 100% { transform: translateY(0) rotateY(0deg); }
+      50% { transform: translateY(-20px) rotateY(10deg); }
+    }
+
+    #content-wrapper {
+      width: 100%;
+      max-width: 600px;
+      perspective: 1000px;
+    }
+
+    #login-section, #user-panel {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow),
+                  inset 0 1px 1px rgba(255,255,255,0.6),
+                  inset 0 -1px 1px rgba(0,0,0,0.1);
+      padding: 40px;
+      margin-top: 20px;
+      transform-style: preserve-3d;
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #login-section::before, #user-panel::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      transform: rotate(45deg);
+      z-index: -1;
+      animation: shine 8s linear infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    #login-section:hover, #user-panel:hover {
+      transform: translateY(-5px) rotateX(2deg) rotateY(1deg);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2),
+                  inset 0 1px 1px rgba(255,255,255,0.8),
+                  inset 0 -1px 1px rgba(0,0,0,0.05);
+    }
+
+    .panel-header {
+      position: relative;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: linear-gradient(135deg, var(--danger), #d1145a);
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      border: none;
+      box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transform: translateZ(20px);
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px) translateZ(20px);
+      box-shadow: 0 6px 20px rgba(247, 37, 133, 0.4);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
+      font-size: 16px;
+      margin-top: 12px;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(76, 201, 240, 0.3),
+                  0 4px 15px rgba(76, 201, 240, 0.2);
+      transform: translateY(-2px);
+    }
+
+    button {
+      width: 100%;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 20px;
+      box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(255,255,255,0.2), transparent);
+      transform: translateY(-100%);
+      transition: transform 0.4s ease;
+    }
+
+    button:hover::after {
+      transform: translateY(0);
+    }
+
+    .order-summary, .deduction-info {
+      margin-top: 25px;
+      padding: 18px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: all 0.4s ease;
+    }
+
+    .order-summary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+
+    .deduction-info {
+      background: linear-gradient(135deg, var(--warning), #f9a03f);
+      color: white;
+      display: none;
+      animation: pulse 2s infinite;
+    }
+
+    .order-preview {
+      margin: 25px 0;
+      padding: 18px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      transition: all 0.4s ease;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .order-preview.visible {
+      background: linear-gradient(135deg, rgba(67,97,238,0.8), rgba(63,55,201,0.8));
+      color: white;
+      box-shadow: 0 6px 20px rgba(67,97,238,0.3);
+      transform: translateY(-3px);
+    }
+
+    .menu-group {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(5px);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      transition: all 0.4s ease;
+      transform-style: preserve-3d;
+    }
+
+    .menu-group:hover {
+      transform: translateY(-5px) rotateX(1deg);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .copyright {
+      margin-top: 30px;
+      color: white;
+      opacity: 0.7;
+      font-size: 12px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    .error-message, .success-message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .error-message {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .success-message {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #order-history {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease, opacity 0.5s ease;
+      opacity: 0;
+    }
+
+    #order-history.show {
+      max-height: 500px;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="logo-header">
+    <img id="system-logo" src="images/logo.png" alt="Logo systemu cateringowego" />
+  </div>
+
+  <div id="content-wrapper">
+    <div id="login-section" class="fade-in">
+      <h2>Logowanie do systemu cateringowego</h2>
+      <input id="login" placeholder="Login - Numer RCP" class="slide-in" style="animation-delay: 0.1s" />
+      <input id="password" type="password" placeholder="Hasło - 4 ostatnie cyfry PESEL" class="slide-in" style="animation-delay: 0.2s" />
+      <button id="login-btn" class="ripple slide-in" style="animation-delay: 0.3s">Zaloguj</button>
+    </div>
+
+    <div id="user-panel" style="display:none;">
+      <div class="panel-header">
+        <h2>Witaj, <span id="user-id"></span> <small>(RCP nr: <span id="user-name"></span>)</small></h2>
+        <button id="logout-btn" class="logout-btn ripple">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+          </svg>
+          Wyloguj
+        </button>
+      </div>
+
+      <h3>Formularz zamówienia</h3>
+      <label for="order-week">Tydzień:</label>
+      <input type="week" id="order-week" required class="slide-in" />
+
+      <label for="delivery-location">Miejsce dostawy:</label>
+      <select id="delivery-location" required class="slide-in">
+        <option value="" disabled selected>Wybierz miejsce dostawy</option>
+        <option value="H7">H7</option>
+        <option value="H5">H5</option>
+        <option value="H4">H4</option>
+        <option value="H3">H3</option>
+        <option value="PMTM">PMTM</option>
+        <option value="BIURO">BIURO</option>
+      </select>
+
+      <div class="order-preview" id="order-preview">Suma zamówienia: 0.00 zł</div>
+
+      <div id="menu-container"></div>
+      <button id="submit-order-btn" class="ripple">Złóż zamówienie</button>
+
+      <div class="order-summary" id="order-summary">Suma dotychczasowych zamówień: 0.00 zł</div>
+      <div class="deduction-info" id="deduction-info"></div>
+
+      <h3>Historia zamówień</h3>
+      <button id="toggle-history" class="ripple">Pokaż historię</button>
+      <div id="order-history"></div>
+    </div>
+  </div>
+
+  <div class="copyright">supported by aim4, all right reserved 04/2025r.</div>
+
+  <script src="user.js"></script>
+</body>
+</html>
