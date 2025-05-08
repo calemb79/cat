@@ -109,7 +109,7 @@ def verify_password(password: str, hashed: str) -> bool:
 def login(user: LoginUser):
     db_user = users_collection.find_one({"username": user.username})
     if not db_user or not verify_password(user.password, db_user["hashed_password"]):
-        raise HTTPException(status_code=400, detail="Błędny login lub hasło")
+        raise HTTPException(status_code=400, detail="BĹ‚Ä™dny login lub hasĹ‚o")
 
     return {
         "msg": "Zalogowano",
@@ -123,10 +123,10 @@ def add_user(payload: NewUserPayload):
     print(payload)  # SprawdĹş, co przychodzi w ĹĽÄ…daniu
     admin = users_collection.find_one({"username": payload.admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak dostępu")
+        raise HTTPException(status_code=403, detail="Brak dostÄ™pu")
 
     if users_collection.find_one({"username": payload.username}):
-        raise HTTPException(status_code=400, detail="Użytkownik już istnieje")
+        raise HTTPException(status_code=400, detail="UĹĽytkownik juĹĽ istnieje")
 
     hashed_pw = hash_password(payload.password)
     users_collection.insert_one({
@@ -135,7 +135,7 @@ def add_user(payload: NewUserPayload):
         "role": payload.role,
         "user_code": payload.user_code
     })
-    return {"msg": f"użytkownik {payload.username} dodany jako {payload.role}"}
+    return {"msg": f"UĹĽytkownik {payload.username} dodany jako {payload.role}"}
 
 
 @app.post("/menu")
@@ -165,32 +165,32 @@ def get_menu():
 def delete_menu_item(payload: MenuDeletePayload):
     admin = users_collection.find_one({"username": payload.username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak uprawnień„")
+        raise HTTPException(status_code=403, detail="Brak uprawnieĹ„")
 
     result = menu_collection.delete_one({"name": payload.name})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Pozycja nie istnieje")
-    return {"msg": f"Usunięto pozycje™ {payload.name}"}
+    return {"msg": f"UsuniÄ™to pozycjÄ™ {payload.name}"}
 
 @app.delete("/admin/delete_user")
 def delete_user(username: str, admin_username: str):
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak dostępu")
+        raise HTTPException(status_code=403, detail="Brak dostÄ™pu")
 
     user = users_collection.find_one({"username": username})
     if not user:
-        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+        raise HTTPException(status_code=404, detail="UĹĽytkownik nie istnieje")
 
     users_collection.delete_one({"username": username})
 
-    return {"msg": f"Użytkownik {username} został‚ usunięty"}
+    return {"msg": f"UĹĽytkownik {username} zostaĹ‚ usuniÄ™ty"}
 
 @app.post("/order/weekly")
 def create_weekly_order(order: WeeklyOrder):
     user = users_collection.find_one({"username": order.username})
     if not user:
-        raise HTTPException(status_code=400, detail="Użytkownik nie istnieje")
+        raise HTTPException(status_code=400, detail="UĹĽytkownik nie istnieje")
 
     # ZamĂłwienie do zapisania
     order_data = order.dict()
@@ -210,7 +210,7 @@ def create_weekly_order(order: WeeklyOrder):
         "date_range": order.date_range,
         "timestamp": datetime.utcnow()
     })
-    return {"msg": "Zamówienie zapisane"}
+    return {"msg": "ZamĂłwienie zapisane"}
 
 
 from bson import ObjectId
@@ -225,49 +225,49 @@ async def delete_order(payload: DeleteOrderPayload):
     # Walidacja admina
     admin = users_collection.find_one({"username": payload.admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak uprawnień")
+        raise HTTPException(status_code=403, detail="Brak uprawnieĹ„")
 
     # Konwersja stringa na ObjectId MongoDB
     try:
         object_id = ObjectId(payload.order_id)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Nieprawidłowy format ID: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"NieprawidĹ‚owy format ID: {str(e)}")
 
     # Usuwanie po _id (ObjectId)
     result = orders_collection.delete_one({"_id": object_id})
 
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Zamówienie nie istnieje")
+        raise HTTPException(status_code=404, detail="ZamĂłwienie nie istnieje")
 
-    return {"status": "success", "message": f"Zamówienie {payload.order_id} usunięte"}
+    return {"status": "success", "message": f"ZamĂłwienie {payload.order_id} usuniÄ™te"}
 
 @app.get("/order/history")
 def get_user_orders(username: str):
     user = users_collection.find_one({"username": username})
     if not user:
-        raise HTTPException(status_code=403, detail="Brak użytkownika")
+        raise HTTPException(status_code=403, detail="Brak uĹĽytkownika")
     return list(orders_collection.find({"username": username}, {"_id": 0}))
 
 @app.put("/admin/change_password")
 def change_password(username: str, new_password: str, admin_username: str):
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak dostępu")
+        raise HTTPException(status_code=403, detail="Brak dostÄ™pu")
 
     user = users_collection.find_one({"username": username})
     if not user:
-        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+        raise HTTPException(status_code=404, detail="UĹĽytkownik nie istnieje")
 
     hashed_password = hash_password(new_password)
     users_collection.update_one({"username": username}, {"$set": {"hashed_password": hashed_password}})
 
-    return {"msg": f"Hasło użytkownika {username} zostało zmienione."}
+    return {"msg": f"HasĹ‚o uĹĽytkownika {username} zostaĹ‚o zmienione."}
 
 @app.get("/admin/users")
 def get_users(admin_username: str):
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak dostępu")
+        raise HTTPException(status_code=403, detail="Brak dostÄ™pu")
 
     users = list(users_collection.find({}, {"_id": 0, "hashed_password": 0}))
     return users
@@ -276,18 +276,18 @@ def get_users(admin_username: str):
 def update_role(username: str, new_role: str, admin_username: str):
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak dostępu")
+        raise HTTPException(status_code=403, detail="Brak dostÄ™pu")
 
     user = users_collection.find_one({"username": username})
     if not user:
-        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+        raise HTTPException(status_code=404, detail="UĹĽytkownik nie istnieje")
 
     if new_role not in ["user", "admin"]:
-        raise HTTPException(status_code=400, detail="Nieprawidłoowa rola")
+        raise HTTPException(status_code=400, detail="NieprawidĹ‚owa rola")
 
     users_collection.update_one({"username": username}, {"$set": {"role": new_role}})
 
-    return {"msg": f"Rola użytkownika {username} została zmieniona na {new_role}"}
+    return {"msg": f"Rola uĹĽytkownika {username} zostaĹ‚a zmieniona na {new_role}"}
 
 # Nowy endpoint do pobrania raportu zamĂłwieĹ„ w formacie Excel
 @app.get("/admin/orders/excel")
@@ -295,16 +295,16 @@ def export_orders_excel(admin_username: str):
     # Walidacja uprawnieĹ„ administratora
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak uprawnień administratora")
+        raise HTTPException(status_code=403, detail="Brak uprawnieĹ„ administratora")
 
     # Pobierz zamĂłwienia
     orders = list(orders_collection.find({}))
     if not orders:
-        raise HTTPException(status_code=404, detail="Brak zamówień do eksportu")
+        raise HTTPException(status_code=404, detail="Brak zamĂłwieĹ„ do eksportu")
 
     # Przygotuj dane
     rows = []
-    days_of_week = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek"]
+    days_of_week = ["PoniedziaĹ‚ek", "Wtorek", "Ĺšroda", "Czwartek", "PiÄ…tek"]
 
     for order in orders:
         # Pobierz kod uĹĽytkownika
@@ -324,12 +324,13 @@ def export_orders_excel(admin_username: str):
 
         # Przygotuj wiersz danych
         row = {
-            "ID zamówienia": str(order["_id"]),
-            "Kod użytkownika": user_code,
-            "Użytkownik": order["username"],
+            "ID zamĂłwienia": str(order["_id"]),
+            "Kod uĹĽytkownika": user_code,
+            "UĹĽytkownik": order["username"],
             "Miejsce": order.get("date_range", ""),
-            "Tydzień„": order["week"],
-            "Data zamówienia": order.get("timestamp", "").strftime("%Y-%m-%d %H:%M:%S") if order.get(
+            "TydzieĹ„": order["week"],
+            "Hala": order["date_range"],
+            "Data zamĂłwienia": order.get("timestamp", "").strftime("%Y-%m-%d %H:%M:%S") if order.get(
                 "timestamp") else "",
 
         }
@@ -349,15 +350,15 @@ def export_orders_excel(admin_username: str):
     # UtwĂłrz plik Excel w pamiÄ™ci
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Zamówienia')
-        worksheet = writer.sheets['Zamółwienia']
+        df.to_excel(writer, index=False, sheet_name='ZamĂłwienia')
+        worksheet = writer.sheets['ZamĂłwienia']
 
         # Formatowanie kolumn z cenami jako waluta
         for col_idx, column in enumerate(df.columns, 1):
             if "cena" in column:
                 # Ustaw formatowanie walutowe dla kolumn z cenami
                 for row in range(2, len(df) + 2):
-                    worksheet.cell(row=row, column=col_idx).number_format = '#,##0.00" zł‚"'
+                    worksheet.cell(row=row, column=col_idx).number_format = '#,##0.00" zĹ‚"'
 
             # Dostosuj szerokoĹ›Ä‡ kolumn
             column_width = max(df[column].astype(str).map(len).max(), len(column)) + 2
@@ -381,7 +382,7 @@ def export_orders_excel(admin_username: str):
 def get_all_orders(admin_username: str):
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak uprawnień")
+        raise HTTPException(status_code=403, detail="Brak uprawnieĹ„")
 
     try:
         orders = list(orders_collection.find({}))
@@ -393,8 +394,8 @@ def get_all_orders(admin_username: str):
         return orders
 
     except Exception as e:
-        print(f"Błąd w /admin/orders: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Błąd serwera: {str(e)}")
+        print(f"BĹ‚Ä…d w /admin/orders: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"BĹ‚Ä…d serwera: {str(e)}")
 
 @app.delete("/admin/delete_orders")
 async def delete_orders(payload: DeleteOrdersPayload):
@@ -407,7 +408,7 @@ async def delete_orders(payload: DeleteOrdersPayload):
     try:
         object_ids = [ObjectId(order_id) for order_id in payload.order_ids]
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Nieprawidłowy format ID: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"NieprawidĹ‚owy format ID: {str(e)}")
 
     # Usuwanie wielu zamĂłwieĹ„
     result = orders_collection.delete_many({"_id": {"$in": object_ids}})
@@ -424,13 +425,13 @@ def export_orders_pdf(admin_username: str):
     # Walidacja uprawnieĹ„ administratora
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak uprawnień administratora")
+        raise HTTPException(status_code=403, detail="Brak uprawnieĹ„ administratora")
 
     try:
         # Pobierz zamĂłwienia
         orders = list(orders_collection.find({}))
         if not orders:
-            raise HTTPException(status_code=404, detail="Brak zamĂłwień do eksportu")
+            raise HTTPException(status_code=404, detail="Brak zamĂłwieĹ„ do eksportu")
 
         # UtwĂłrz PDF w pamiÄ™ci z orientacjÄ… poziomÄ…
         buffer = BytesIO()
@@ -442,14 +443,14 @@ def export_orders_pdf(admin_username: str):
             styles = getSampleStyleSheet()
             styles['Normal'].fontName = 'DejaVu'
         except:
-            print("Uwaga: Czcionka DejaVu nie została zarejestrowana, używam domyślnej")
+            print("Uwaga: Czcionka DejaVu nie zostaĹ‚a zarejestrowana, uĹĽywam domyĹ›lnej")
 
         # Inicjalizacja elementĂłw dokumentu
         elements = []
         styles = getSampleStyleSheet()
 
         # TytuĹ‚
-        title = Paragraph(f"Raport zamówień„ - {datetime.now().strftime('%Y-%m-%d')}", styles['Title'])
+        title = Paragraph(f"Raport zamĂłwieĹ„ - {datetime.now().strftime('%Y-%m-%d')}", styles['Title'])
         elements.append(title)
 
         # Przygotuj dane
@@ -457,13 +458,13 @@ def export_orders_pdf(admin_username: str):
         headers = [
             "Nazwisko Imie",
             "RCP",
-            "Tydzień„",
+            "TydzieĹ„",
             "Zakres dat",
-            "Poniedziałek",
+            "PoniedziaĹ‚ek",
             "Wtorek",
-            "Środa",
+            "Ĺšroda",
             "Czwartek",
-            "Piątek"
+            "PiÄ…tek"
         ]
         data.append(headers)
 
@@ -485,11 +486,11 @@ def export_orders_pdf(admin_username: str):
                 order["username"],
                 order["week"],
                 order.get("date_range", "Brak danych"),
-                "\n".join(meals_by_day["Poniedziałek"]) or "-",
+                "\n".join(meals_by_day["PoniedziaĹ‚ek"]) or "-",
                 "\n".join(meals_by_day["Wtorek"]) or "-",
-                "\n".join(meals_by_day["Środa"]) or "-",
+                "\n".join(meals_by_day["Ĺšroda"]) or "-",
                 "\n".join(meals_by_day["Czwartek"]) or "-",
-                "\n".join(meals_by_day["Piątek"]) or "-"
+                "\n".join(meals_by_day["PiÄ…tek"]) or "-"
             ]
             data.append(row)
 
@@ -538,20 +539,20 @@ def export_orders_pdf(admin_username: str):
         )
 
     except Exception as e:
-        print(f"Błąd podczas generowania PDF: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Błąd generowania PDF: {str(e)}")
+        print(f"BĹ‚Ä…d podczas generowania PDF: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"BĹ‚Ä…d generowania PDF: {str(e)}")
 
 @app.get("/admin/orders/erp")
 def export_orders_erp(admin_username: str):
     # Walidacja uprawnieĹ„ administratora
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak uprawnień administratora")
+        raise HTTPException(status_code=403, detail="Brak uprawnieĹ„ administratora")
 
     # Pobierz zamĂłwienia
     orders = list(orders_collection.find({}))
     if not orders:
-        raise HTTPException(status_code=404, detail="Brak zamówień do eksportu")
+        raise HTTPException(status_code=404, detail="Brak zamĂłwieĹ„ do eksportu")
 
     # Przygotuj dane w formacie CSV
     output = BytesIO()
@@ -591,12 +592,12 @@ def export_dishes_report(admin_username: str):
     # Walidacja uprawnieĹ„ administratora
     admin = users_collection.find_one({"username": admin_username})
     if not admin or admin["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak uprawnień administratora")
+        raise HTTPException(status_code=403, detail="Brak uprawnieĹ„ administratora")
 
     # Pobierz zamĂłwienia
     orders = list(orders_collection.find({}))
     if not orders:
-        raise HTTPException(status_code=404, detail="Brak zamówień do eksportu")
+        raise HTTPException(status_code=404, detail="Brak zamĂłwieĹ„ do eksportu")
 
     # Przygotuj dane
     rows = []
@@ -609,9 +610,9 @@ def export_dishes_report(admin_username: str):
         # Dla kaĹĽdego dania w zamĂłwieniu utwĂłrz osobny wiersz
         for meal in order.get("meals", []):
             row = {
-                "Kod użytkownika": user_code,
+                "Kod uĹĽytkownika": user_code,
                 "Miejsce": order.get("date_range", "Brak danych"),
-                "Tydzień": order["week"],
+                "TydzieĹ„": order["week"],
                 "Danie": f"{meal['name']} ({meal['day']})",
                 "Cena": float(meal['price'])
             }
@@ -628,7 +629,7 @@ def export_dishes_report(admin_username: str):
 
         # Formatowanie kolumny z cenÄ… jako waluta
         for row in range(2, len(df) + 2):
-            worksheet.cell(row=row, column=5).number_format = '#,##0.00" zł"'
+            worksheet.cell(row=row, column=5).number_format = '#,##0.00" zĹ‚"'
 
         # Dostosuj szerokoĹ›ci kolumn
         col_widths = {
@@ -671,13 +672,13 @@ def export_orders_word_mailmerge(admin_username: str):
     # Pobierz zamĂłwienia
     orders = list(orders_collection.find({}))
     if not orders:
-        raise HTTPException(status_code=404, detail="Brak zamówień do eksportu")
+        raise HTTPException(status_code=404, detail="Brak zamĂłwieĹ„ do eksportu")
 
     # UtwĂłrz nowy dokument Word
     doc = Document()
 
     # NagĹ‚Ăłwek
-    doc.add_heading('Raport zamówień - korespondencja seryjna', 0)
+    doc.add_heading('Raport zamĂłwieĹ„ - korespondencja seryjna', 0)
 
     # Tabela z danymi
     table = doc.add_table(rows=1, cols=5)
@@ -685,9 +686,9 @@ def export_orders_word_mailmerge(admin_username: str):
 
     # NagĹ‚Ăłwki kolumn
     hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'Kod użytkownika'
-    hdr_cells[1].text = 'Nazwa użytkownika'
-    hdr_cells[2].text = 'Tydzień'
+    hdr_cells[0].text = 'Kod uĹĽytkownika'
+    hdr_cells[1].text = 'Nazwa uĹĽytkownika'
+    hdr_cells[2].text = 'TydzieĹ„'
     hdr_cells[3].text = 'Miejsce'
     hdr_cells[4].text = 'Dania'
 
