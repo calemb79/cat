@@ -87,6 +87,25 @@ function addUser() {
   const role = document.getElementById("new-role").value;
   const userCode = document.getElementById("new-user-code").value;
 
+// Walidacja pól
+  if (!username) {
+    showNotification("Proszę podać numer RCP (username)", 'error');
+    document.getElementById("new-username").focus();
+    return;
+  }
+
+  if (!password) {
+    showNotification("Proszę podać hasło", 'error');
+    document.getElementById("new-password").focus();
+    return;
+  }
+
+  if (!userCode) {
+    showNotification("Proszę podać imię i nazwisko użytkownika", 'error');
+    document.getElementById("new-user-code").focus();
+    return;
+  }
+
   fetch("http://localhost:8000/admin/add_user", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
