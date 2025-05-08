@@ -252,6 +252,7 @@ function addDish() {
   const name = document.getElementById("dish-name").value;
   const description = document.getElementById("dish-description").value;
   const price = parseFloat(document.getElementById("dish-price").value);
+  const day = document.getElementById("dish-day").value;
 
   if (!name || !description || isNaN(price)) {
     showNotification("Uzupełnij wszystkie pola", 'error');
@@ -261,7 +262,13 @@ function addDish() {
   fetch("http://localhost:8000/menu", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, description, price, username: loggedInUser })
+    body: JSON.stringify({ 
+      name, 
+      description, 
+      price, 
+      day,  // Dodane pole dnia
+      username: loggedInUser 
+    })
   })
     .then(res => res.json())
     .then(data => {
@@ -288,12 +295,13 @@ function loadMenu() {
       table.classList.add('animate__animated', 'animate__fadeIn');
       
       const header = document.createElement("tr");
-      header.innerHTML = "<th>Nazwa</th><th>Opis</th><th>Cena</th><th>Akcje</th>";
+      header.innerHTML = "<th>Dzień</th><th>Nazwa</th><th>Opis</th><th>Cena</th><th>Akcje</th>";
       table.appendChild(header);
 
       menu.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
+          <td>${item.day || 'Brak dnia'}</td>
           <td>${item.name}</td>
           <td>${item.description}</td>
           <td>${item.price.toFixed(2)} zł</td>

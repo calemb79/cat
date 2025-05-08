@@ -324,18 +324,27 @@
 
       <!-- Zarządzanie menu -->
       <section class="animate__animated animate__fadeIn">
-        <h3>Dodaj danie do menu</h3>
-        <div class="form-group">
-          <input type="text" id="dish-name" placeholder="Nazwa" />
-        </div>
-        <div class="form-group">
-          <input type="text" id="dish-description" placeholder="Opis" />
-        </div>
-        <div class="form-group">
-          <input type="number" id="dish-price" placeholder="Cena" step="0.01" />
-        </div>
-        <button onclick="addDish()" class="ripple success-btn">Dodaj danie</button>
-      </section>
+  <h3>Dodaj danie do menu</h3>
+  <div class="form-group">
+    <input type="text" id="dish-name" placeholder="Nazwa" />
+  </div>
+  <div class="form-group">
+    <input type="text" id="dish-description" placeholder="Opis" />
+  </div>
+  <div class="form-group">
+    <input type="number" id="dish-price" placeholder="Cena" step="0.1" />
+  </div>
+  <div class="form-group">
+    <select id="dish-day">
+      <option value="Poniedziałek">Poniedziałek</option>
+      <option value="Wtorek">Wtorek</option>
+      <option value="Środa">Środa</option>
+      <option value="Czwartek">Czwartek</option>
+      <option value="Piątek">Piątek</option>
+    </select>
+  </div>
+  <button onclick="addDish()" class="ripple success-btn">Dodaj danie</button>
+</section>
 
       <section class="animate__animated animate__fadeIn">
         <h3>Aktualne menu</h3>
