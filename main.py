@@ -66,6 +66,8 @@ class MenuItem(BaseModel):
     name: str
     description: str
     price: float
+    day: str  # Dodane pole dnia
+    username: str
 
 class NewUserPayload(BaseModel):
     username: str
@@ -79,6 +81,7 @@ class MenuPayload(BaseModel):
     description: str
     price: float
     username: str
+    day: str
 
 class MenuDeletePayload(BaseModel):
     name: str
@@ -139,14 +142,20 @@ def add_user(payload: NewUserPayload):
 def add_menu_item(payload: MenuPayload):
     user = users_collection.find_one({"username": payload.username})
     if not user or user["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Brak uprawnieĹ„")
+        raise HTTPException(status_code=403, detail="Brak uprawnień")
 
     menu_collection.insert_one({
         "name": payload.name,
         "description": payload.description,
-        "price": payload.price
+        "price": payload.price,
+        "day": payload.day  # Dodane pole dnia
     })
     return {"msg": "Pozycja dodana do menu"}
+
+# Zmodyfikuj endpoint /menu/list
+@app.get("/menu/list")
+def get_menu():
+    return list(menu_collection.find({}, {"_id": 0}))
 
 @app.get("/menu/list")
 def get_menu():

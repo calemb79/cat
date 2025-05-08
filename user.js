@@ -11,7 +11,7 @@ async function login() {
   loginBtn.disabled = true;
 
   try {
-    const res = await fetch("https://catering-1.onrender.com/login", {
+    const res = await fetch("http://localhost:8000/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: login, password: password })
@@ -56,7 +56,7 @@ async function login() {
 
 async function loadOrderHistory() {
   try {
-    const res = await fetch(`https://catering-1.onrender.com/order/history?username=${loggedInUser}`);
+    const res = await fetch(`http://localhost:8000/order/history?username=${loggedInUser}`);
     userOrders = await res.json();
     updateOrderSummary();
   } catch (error) {
@@ -80,7 +80,7 @@ function updateOrderSummary() {
     summaryElement.classList.remove('animate__animated', 'animate__pulse');
   }, 1000);
   
-  summaryElement.textContent = `Suma zamówień: ${total.toFixed(2)} zł`;
+  summaryElement.textContent = `Suma tygodniowych zamówień: ${total.toFixed(2)} zł`;
   
   if (total > 50) {
     const difference = total - 50;
@@ -124,7 +124,7 @@ function updateOrderPreview() {
 
 async function loadMenu() {
   try {
-    const res = await fetch("https://catering-1.onrender.com/menu/list");
+    const res = await fetch("http://localhost:8000/menu/list");
     const menuItems = await res.json();
 
     const days = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek"];
@@ -149,7 +149,10 @@ async function loadMenu() {
       defaultOption.value = "";
       select.appendChild(defaultOption);
 
-      menuItems.forEach(item => {
+      // Filtruj dania tylko dla danego dnia
+      const dayMenuItems = menuItems.filter(item => item.day === day);
+      
+      dayMenuItems.forEach(item => {
         const option = document.createElement("option");
         option.value = JSON.stringify({ name: item.name, price: item.price });
         option.text = `${item.name} (${item.price.toFixed(2)} zł)`;
@@ -188,7 +191,8 @@ async function submitOrder() {
   selects.forEach(select => {
     if (select.value) {
       const { name, price } = JSON.parse(select.value);
-      meals[select.name] = [{ name, price }];
+      // Dodajemy informację o dniu do zamówienia
+      meals[select.name] = [{ name, price, day: select.name }];
       hasMeals = true;
     }
   });
@@ -210,7 +214,7 @@ async function submitOrder() {
   submitBtn.disabled = true;
 
   try {
-    const response = await fetch("https://catering-1.onrender.com/order/weekly", {
+    const response = await fetch("http://localhost:8000/order/weekly", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -254,7 +258,7 @@ async function toggleHistory() {
 
   try {
     if (!isHistoryVisible) {
-      const res = await fetch(`https://catering-1.onrender.com/order/history?username=${loggedInUser}`);
+      const res = await fetch(`http://localhost:8000/order/history?username=${loggedInUser}`);
       userOrders = await res.json();
       updateOrderSummary();
 
@@ -262,23 +266,23 @@ async function toggleHistory() {
       container.classList.add('animate__animated', 'animate__fadeIn');
       
       userOrders.forEach((order, index) => {
-        const div = document.createElement("div");
-        div.classList.add('order-item', 'animate__animated', 'animate__fadeIn');
-        div.style.animationDelay = `${index * 0.1}s`;
-        div.innerHTML = `
-          <div class="order-header">
-            <strong>Tydzień:</strong> ${order.week} (${order.date_range})
-          </div>
-          <div class="order-meals">
-            <strong>Pozycje:</strong>
-            <ul>
-              ${order.meals.map(meal => `<li>${meal.day}: ${meal.name} (${meal.price} zł)</li>`).join("")}
-            </ul>
-          </div>
-          <hr>
-        `;
-        container.appendChild(div);
-      });
+    const div = document.createElement("div");
+    div.classList.add('order-item', 'animate__animated', 'animate__fadeIn');
+    div.style.animationDelay = `${index * 0.1}s`;
+    div.innerHTML = `
+      <div class="order-header">
+        <strong>Tydzień:</strong> ${order.week} (${order.date_range})
+      </div>
+      <div class="order-meals">
+        <strong>Pozycje:</strong>
+        <ul>
+          ${order.meals.map(meal => `<li>${meal.day}: ${meal.name} (${meal.price} zł)</li>`).join("")}
+        </ul>
+      </div>
+      <hr>
+    `;
+    container.appendChild(div);
+  });
 
       button.textContent = "Zakryj historię";
       isHistoryVisible = true;
@@ -324,7 +328,7 @@ function logout() {
     document.getElementById("order-summary").textContent = "Suma zamówień: 0.00 zł";
     document.getElementById("deduction-info").style.display = "none";
     
-    fetch("https://catering-1.onrender.com/logout", {
+    fetch("http://localhost:8000/logout", {
       method: "POST",
       credentials: 'include'
     }).catch(error => console.log("Błąd wylogowania:", error));
