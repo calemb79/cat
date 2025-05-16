@@ -321,26 +321,33 @@ function logout() {
     loggedInUser = "";
     isHistoryVisible = false;
     userOrders = [];
-    
+
     document.getElementById("login-section").style.display = "block";
     document.getElementById("login-section").classList.add('animate__animated', 'animate__fadeIn');
     document.getElementById("user-panel").style.display = "none";
     document.getElementById("user-panel").classList.remove('animate__animated', 'animate__fadeOut');
     document.querySelector(".logout-btn").style.display = "none";
-    
+
     document.getElementById("login").value = "";
     document.getElementById("password").value = "";
-    
+
     document.getElementById("user-name").textContent = "";
     document.getElementById("menu-container").innerHTML = "";
     document.getElementById("order-history").innerHTML = "";
     document.getElementById("order-summary").textContent = "Suma zamówień: 0.00 zł";
     document.getElementById("deduction-info").style.display = "none";
-    
-    fetch("http://localhost:8000/logout", {
+
+    // fetch do wylogowania
+    fetch("http://localhost:8000/logout", { 
       method: "POST",
       credentials: 'include'
-    }).catch(error => console.log("Błąd wylogowania:", error));
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data.message); // np. "Wylogowano"
+        alert(data.message); // Pokaż alert z komunikatem
+      })
+      .catch(error => console.log("Błąd wylogowania:", error));
   }, 500);
 }
 
