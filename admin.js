@@ -837,3 +837,28 @@ async function downloadWordMailMerge() {
     button.disabled = false;
   }
 }
+
+async function updateLoginMessage() {
+  const text = document.getElementById("messageText").value;
+  const res = await fetch("/message", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ text })
+  });
+
+  if (res.ok) {
+    document.getElementById("saveMsg").textContent = "Zapisano!";
+  }
+}
+
+async function loadLoginMessage() {
+  const res = await fetch("/message");
+  const data = await res.json();
+  document.getElementById("messageText").value = data.text;
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  loadLoginMessage();
+});

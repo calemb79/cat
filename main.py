@@ -19,6 +19,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from docx import Document
 from docx.shared import Pt
+from fastapi import Query
 
 
 
@@ -96,6 +97,9 @@ class DeleteOrderPayload(BaseModel):
 class DeleteOrdersPayload(BaseModel):
     order_ids: List[str]
     admin_username: str
+
+class MessageUpdate(BaseModel):
+    text: str
 
 
 # Funkcje haseĹ‚
@@ -723,3 +727,19 @@ def export_orders_word_mailmerge(admin_username: str):
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers=headers
     )
+@app.get("/order/exists")
+def order_exists(username: str = Query(...), week: str = Query(...)):
+    existing_order = orders_collection.find_one({"username": username, "week": week})
+    return {"exists": existing_order is not None}
+
+@app.get("/message")
+def get_message():
+    message = db.messages.find_one({"_id": "login_info"})
+    if message:
+        return {"text": message["text"]}
+    return {"text": ""}
+
+@app.post("/message")
+def update_message(msg: MessageUpdate):
+    db.messages.update_one({"_id": "login_info"}, {"$set": {"text": msg.text}}, upsert=True)
+    return {"msg": "Komunikat zapisany"}

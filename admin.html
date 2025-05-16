@@ -317,10 +317,21 @@
       </section>
 
       <section id="user-list-section" class="animate__animated animate__fadeIn">
-  <h3>Lista użytkowników</h3>
-  <button onclick="fetchUsers()" class="ripple">Pokaż użytkowników</button>
-  <div id="user-list"></div>
+  	<h3>Lista użytkowników</h3>
+  	<button onclick="fetchUsers()" class="ripple">Pokaż użytkowników</button>
+  	<div id="user-list"></div>
+	</section>
+
+<section id="messages" class="animate__animated animate__fadeIn">
+<h3>Edytuj komunikat logowania</h3>
+<textarea id="messageText" rows="4" cols="50"></textarea><br>
+<button onclick="updateLoginMessage()">Zapisz komunikat</button>
+<div id="saveMsg" style="color: green;"></div>
+
+
 </section>
+
+
 
       <!-- Zarządzanie menu -->
       <section class="animate__animated animate__fadeIn">

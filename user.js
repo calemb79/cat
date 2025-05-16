@@ -528,4 +528,14 @@ function hasExistingOrderForWeek(week) {
   return userOrders.some(order => order.week === week);
 }
 
+async function fetchLoginMessage() {
+  const res = await fetch("/message");
+  const data = await res.json();
+  document.getElementById("loginMessage").textContent = data.text;
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  fetchLoginMessage();
+});
+
 
