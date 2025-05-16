@@ -48,6 +48,7 @@ db = client["catering_app"]
 users_collection = db["users"]
 orders_collection = db["orders"]
 menu_collection = db["menu"]
+messages_collection = db["messages"]
 
 # MODELE
 class LoginUser(BaseModel):
@@ -98,7 +99,8 @@ class DeleteOrdersPayload(BaseModel):
     order_ids: List[str]
     admin_username: str
 
-class MessageUpdate(BaseModel):
+
+class Message(BaseModel):
     text: str
 
 
@@ -159,9 +161,7 @@ def add_menu_item(payload: MenuPayload):
     return {"msg": "Pozycja dodana do menu"}
 
 # Zmodyfikuj endpoint /menu/list
-@app.get("/menu/list")
-def get_menu():
-    return list(menu_collection.find({}, {"_id": 0}))
+
 
 @app.get("/menu/list")
 def get_menu():
@@ -732,14 +732,26 @@ def order_exists(username: str = Query(...), week: str = Query(...)):
     existing_order = orders_collection.find_one({"username": username, "week": week})
     return {"exists": existing_order is not None}
 
-@app.get("/message")
-def get_message():
-    message = db.messages.find_one({"_id": "login_info"})
-    if message:
-        return {"text": message["text"]}
-    return {"text": ""}
+@app.put("/messages")
+async def update_message(message: Message):
+    result = messages_collection.update_one(
+        {"_id": "login_info"},
+        {"$set": {"text": message.text}},
+        upsert=True
+    )
+    return {"status": "ok"}
 
-@app.post("/message")
-def update_message(msg: MessageUpdate):
-    db.messages.update_one({"_id": "login_info"}, {"$set": {"text": msg.text}}, upsert=True)
-    return {"msg": "Komunikat zapisany"}
+
+@app.post("/messages")
+async def add_message(message: Message):
+    result = messages_collection.update_one(
+        {"_id": "login_info"},
+        {"$set": {"text": message.text}},
+        upsert=True
+    )
+    return {"status": "ok"}
+
+@app.get("/messages")
+async def get_message():
+    msg = messages_collection.find_one({"_id": "login_info"})
+    return {"text": msg["text"] if msg else ""}

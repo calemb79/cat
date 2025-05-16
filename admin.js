@@ -839,26 +839,78 @@ async function downloadWordMailMerge() {
 }
 
 async function updateLoginMessage() {
-  const text = document.getElementById("messageText").value;
-  const res = await fetch("/message", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ text })
-  });
-
-  if (res.ok) {
-    document.getElementById("saveMsg").textContent = "Zapisano!";
+  const messageText = document.getElementById('messageText').value.trim();
+  if (!messageText) {
+    alert("Wpisz komunikat");
+    return;
+  }
+  try {
+    const response = await fetch('http://localhost:8000/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: messageText }),
+    });
+    if (!response.ok) throw new Error('Błąd zapisu');
+    document.getElementById('saveMsg').textContent = "Komunikat zapisany";
+    fetchCurrentMessage();  // odśwież aktualny komunikat obok
+  } catch (error) {
+    document.getElementById('saveMsg').style.color = 'red';
+    document.getElementById('saveMsg').textContent = "Błąd podczas zapisu";
+    console.error(error);
   }
 }
 
-async function loadLoginMessage() {
-  const res = await fetch("/message");
-  const data = await res.json();
-  document.getElementById("messageText").value = data.text;
+
+async function updateLoginMessage() {
+  const messageText = document.getElementById('messageText').value;
+
+  try {
+    const response = await fetch('http://localhost:8000/messages', {
+      method: 'PUT', // lub 'POST', jeśli Twój backend tak obsługuje
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text: messageText }),
+    });
+
+    if (!response.ok) throw new Error('Błąd podczas zapisywania wiadomości');
+
+    document.getElementById('saveMsg').textContent = 'Komunikat został zapisany.';
+    
+    // === ODŚWIEŻ KOMUNIKAT NA STRONIE PO ZAPISIE ===
+    await fetchCurrentMessage();
+
+    setTimeout(() => {
+      document.getElementById('saveMsg').textContent = '';
+    }, 3000);
+
+  } catch (error) {
+    console.error(error);
+    document.getElementById('saveMsg').textContent = 'Błąd podczas zapisywania komunikatu.';
+    setTimeout(() => {
+      document.getElementById('saveMsg').textContent = '';
+    }, 3000);
+  }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  loadLoginMessage();
+async function fetchCurrentMessage() {
+  try {
+    const response = await fetch('http://localhost:8000/messages');
+    if (!response.ok) {
+      throw new Error(`Błąd sieci: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    document.getElementById('currentMessage').textContent = data.text || "(Brak komunikatu)";
+  } catch (error) {
+    document.getElementById('currentMessage').textContent = `Nie udało się pobrać komunikatu: ${error.message}`;
+    console.error(error);
+  }
+}
+
+
+// Wywołaj tę funkcję przy załadowaniu strony:
+window.addEventListener('DOMContentLoaded', () => {
+  fetchCurrentMessage();
 });
+
+

@@ -324,9 +324,16 @@
 
 <section id="messages" class="animate__animated animate__fadeIn">
 <h3>Edytuj komunikat logowania</h3>
-<textarea id="messageText" rows="4" cols="50"></textarea><br>
-<button onclick="updateLoginMessage()">Zapisz komunikat</button>
-<div id="saveMsg" style="color: green;"></div>
+  <div style="display: flex; gap: 20px; align-items: flex-start;">
+    <textarea id="messageText" rows="4" cols="50" placeholder="Wpisz nowy komunikat"></textarea>
+    <div>
+      <label><strong>Aktualny komunikat:</strong></label>
+      <div id="currentMessage" style="white-space: pre-wrap; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: #f0f0f0; width: 300px; min-height: 80px;"></div>
+    </div>
+  </div>
+  <br>
+  <button onclick="updateLoginMessage()">Zapisz komunikat</button>
+  <div id="saveMsg" style="color: green; margin-top: 10px;"></div>
 
 
 </section>
