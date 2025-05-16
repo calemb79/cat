@@ -85,6 +85,37 @@
                   inset 0 3px 8px rgba(255, 255, 255, 0.9);
     }
 
+#week-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-top: 15px;
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.calendar-day-header {
+  font-weight: bold;
+  color: var(--secondary);
+  text-align: center;
+  font-size: 14px;
+}
+
+.calendar-day {
+  padding: 8px;
+  text-align: center;
+  border-radius: 8px;
+  background: #f0f0f0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.calendar-day.selected {
+  background: var(--primary);
+  color: white;
+}
     .panel-header {
       position: relative;
       margin-bottom: 20px;
@@ -397,6 +428,7 @@
       <h3>Formularz zamówienia</h3>
       <label for="order-week">Tydzień:</label>
       <input type="week" id="order-week" required class="slide-in" />
+      <div id="week-calendar" style="display: none; margin-top: 15px;"></div>
 
       <label for="delivery-location">Miejsce dostawy:</label>
       <select id="delivery-location" required class="slide-in">
@@ -421,7 +453,10 @@
       <h3>Historia zamówień</h3>
       <button id="toggle-history" onclick="toggleHistory()" class="ripple">Pokaż historię</button>
       <div id="order-history"></div>
+     <div id="orderExistsMessage" style="display: none; color: red;">
+  	Zamówienie na ten tydzień zostało już złożone. 
     </div>
+
   </div>
 
   <div class="copyright">supported by aim4, all right reserved 04/2025r.</div>

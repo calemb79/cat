@@ -2,7 +2,7 @@ let loggedInUser = "";
 let userOrders = [];
 let isHistoryVisible = false;
 
-async function login() {
+window.login = async function() {
   const login = document.getElementById("login").value;
   const password = document.getElementById("password").value;
 
@@ -31,6 +31,9 @@ async function login() {
         
         document.getElementById("user-panel").style.display = "block";
         document.getElementById("user-panel").classList.add('animate__animated', 'animate__fadeInUp');
+if (document.getElementById('order-week').value) {
+  updateWeekCalendar(document.getElementById('order-week').value);
+}
         
         document.querySelector(".logout-btn").style.display = "flex";
         document.querySelector(".logout-btn").classList.add('animate__animated', 'animate__fadeIn');
@@ -82,8 +85,8 @@ function updateOrderSummary() {
   
   summaryElement.textContent = `Suma tygodniowych zamówień: ${total.toFixed(2)} zł`;
   
-  if (total > 50) {
-    const difference = total - 50;
+  if (total > 55) {
+    const difference = total - 55;
     deductionInfo.textContent = `Przekroczenie dofinansowania o: ${difference.toFixed(2)} zł`;
     deductionInfo.style.display = "block";
     deductionInfo.classList.add('animate__animated', 'animate__pulse');
@@ -180,6 +183,11 @@ async function submitOrder() {
     return;
   }
   
+  if (hasExistingOrderForWeek(week)) {
+  showError("Zamówienie na ten tydzień zostało już złożone. !SPRAWDŹ HISTORIĘ ZAMÓWIEŃ!");
+  return;
+}  
+  
   if (!deliveryLocation) {
     showError("Proszę wybrać miejsce dostawy!");
     return;
@@ -227,6 +235,7 @@ async function submitOrder() {
       
       // Reset formularza
       document.getElementById('order-week').value = '';
+      document.getElementById('week-calendar').style.display = 'none'; // Dodaj tę linijkę
       document.getElementById('delivery-location').value = '';
       selects.forEach(select => {
         select.value = '';
@@ -425,3 +434,98 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+function updateWeekCalendar(weekString) {
+  const calendar = document.getElementById('week-calendar');
+  calendar.innerHTML = '';
+  
+  if (!weekString || !weekString.includes('-W')) {
+    calendar.style.display = 'none';
+    return;
+  }
+  
+  try {
+    calendar.style.display = 'grid';
+    
+    const [year, weekNum] = weekString.split('-W').map(Number);
+    
+    if (isNaN(year)) throw new Error("Invalid year"); // Dodano brakujący nawias
+    if (isNaN(weekNum)) throw new Error("Invalid week");
+    
+    // Tworzymy datę dla pierwszego dnia roku
+    const date = new Date(year, 0, 1);
+    
+    // Znajdź pierwszy czwartek roku (ISO week date)
+    while (date.getDay() !== 4) {
+      date.setDate(date.getDate() + 1);
+    }
+    
+    // Przesuń się do wybranego tygodnia
+    date.setDate(date.getDate() + (weekNum - 1) * 7);
+    
+    // Cofnij się do poniedziałku
+    date.setDate(date.getDate() - 3);
+    
+    // Nagłówki dni i daty
+    const days = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
+    
+    // Wyświetl dni tygodnia z datami
+    for (let i = 0; i < 7; i++) {
+      // Nagłówek dnia
+      const dayHeader = document.createElement('div');
+      dayHeader.className = 'calendar-day-header';
+      dayHeader.textContent = days[i];
+      calendar.appendChild(dayHeader);
+      
+      // Dzień z datą
+      const dayElement = document.createElement('div');
+      dayElement.className = 'calendar-day selected';
+      dayElement.textContent = date.getDate();
+      calendar.appendChild(dayElement);
+      
+      date.setDate(date.getDate() + 1);
+    }
+  } catch (error) {
+    console.error("Błąd generowania kalendarza:", error);
+    calendar.style.display = 'none';
+  }
+}
+
+async function checkOrderExists(username, week) {
+  const url = `/order/exists?username=${encodeURIComponent(username)}&week=${week}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    console.error("Błąd podczas sprawdzania zamówienia");
+    return false;
+  }
+  const data = await response.json();
+  return data.exists;
+}
+
+document.getElementById("orderForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const username = localStorage.getItem("username");
+  const week = getSelectedWeek(); // Twoja funkcja, która oblicza numer tygodnia
+
+  const exists = await checkOrderExists(username, week);
+  if (exists) {
+    document.getElementById("orderExistsMessage").style.display = "block";
+    disableForm();
+    return;
+  }
+
+  // jeśli nie istnieje, kontynuuj składanie zamówienia
+  submitOrder();
+});
+
+function disableForm() {
+  document.querySelectorAll("#orderForm input, #orderForm select, #orderForm button")
+    .forEach(el => el.disabled = true);
+}
+
+function hasExistingOrderForWeek(week) {
+  return userOrders.some(order => order.week === week);
+}
+
+
