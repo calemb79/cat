@@ -322,22 +322,39 @@
   	<div id="user-list"></div>
 	</section>
 
-<section id="messages" class="animate__animated animate__fadeIn">
-<h3>Edytuj komunikat logowania</h3>
-  <div style="display: flex; gap: 20px; align-items: flex-start;">
-    <textarea id="messageText" rows="4" cols="50" placeholder="Wpisz nowy komunikat"></textarea>
+<section id="messages" class="animate__animated animate__fadeIn" style="background: rgba(255, 255, 255, 0.95); border-radius: 16px; padding: 40px; margin-top: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);">
+  <h3 style="text-align: center; color: var(--secondary); margin-bottom: 25px; font-size: 22px;">Edytuj komunikat logowania</h3>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: stretch;">
+    <!-- Pole tekstowe do edycji -->
     <div>
-      <label><strong>Aktualny komunikat:</strong></label>
-      <div id="currentMessage" style="white-space: pre-wrap; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: #f0f0f0; width: 300px; min-height: 80px;"></div>
+      <strong style="display: block; margin-bottom: 10px;">Nowy komunikat:</strong>
+  <textarea id="messageText" 
+            style="width: 100%; padding: 15px; border: 2px solid #e9ecef; border-radius: 12px; font-family: 'Inter'; font-size: 16px; min-height: 150px; resize: none;"
+            placeholder="Wpisz nowy komunikat..."></textarea>
+    </div>
+    
+    <!-- Podgląd aktualnego komunikatu -->
+    <div>
+      <label style="display: block; margin-bottom: 10px; font-weight: 500; color: var(--dark);">
+        <strong>Aktualny komunikat:</strong>
+      </label>
+      <div id="currentMessage" 
+           style="padding: 15px; background: rgba(240, 240, 240, 0.7); border-radius: 12px; border: 2px solid #e9ecef; min-height: 150px; font-family: 'Inter';">
+        Ładowanie komunikatu...
+      </div>
     </div>
   </div>
-  <br>
-  <button onclick="updateLoginMessage()">Zapisz komunikat</button>
-  <div id="saveMsg" style="color: green; margin-top: 10px;"></div>
-
-
+  
+  <!-- Przycisk zapisu -->
+  <button onclick="updateLoginMessage()" 
+          style="display: block; margin: 25px auto 0; padding: 15px 40px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">
+    Zapisz komunikat
+  </button>
+  
+  <!-- Komunikat o zapisie -->
+  <div id="saveMsg" style="margin-top: 20px; text-align: center; padding: 12px; border-radius: 8px;"></div>
 </section>
-
 
 
       <!-- Zarządzanie menu -->
@@ -364,9 +381,36 @@
   <button onclick="addDish()" class="ripple success-btn">Dodaj danie</button>
 </section>
 
+<!-- W sekcji Aktualne menu -->
       <section class="animate__animated animate__fadeIn">
-        <h3>Aktualne menu</h3>
-        <div id="menu-list"></div>
+ 	 <h3>Aktualne menu</h3>
+  <button onclick="toggleMenu()" class="ripple">Pokaż/ukryj menu</button>
+  <div id="menu-list"></div>
+  
+  <!-- Sekcja edycji menu (początkowo ukryta) -->
+ <div id="edit-menu-section" style="display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
+  <h4>Edytuj danie</h4>
+  <div class="form-group">
+    <input type="text" id="edit-dish-name" placeholder="Nazwa" readonly>
+  </div>
+  <div class="form-group">
+    <input type="text" id="edit-dish-description" placeholder="Opis">
+  </div>
+  <div class="form-group">
+    <input type="number" id="edit-dish-price" placeholder="Cena" step="0.01">
+  </div>
+  <div class="form-group">
+    <select id="edit-dish-day">
+      <option value="Poniedziałek">Poniedziałek</option>
+      <option value="Wtorek">Wtorek</option>
+      <option value="Środa">Środa</option>
+      <option value="Czwartek">Czwartek</option>
+      <option value="Piątek">Piątek</option>
+    </select>
+  </div>
+  <button onclick="saveEditedDish()" class="ripple success-btn">Zapisz zmiany</button>
+  <button onclick="cancelEditMenu()" class="ripple danger-btn">Anuluj</button>
+</div>
       </section>
 
      <!-- W sekcji Zamówienia -->

@@ -3,6 +3,7 @@ let areOrdersVisible = false;
 let areUsersVisible = false;
 let selectedOrders = new Set();
 let sortDirection = 1;
+let isMenuVisible = false; // Dodaj tę zmienną na początku pliku, z innymi stanami
 
 // Helper functions for notifications
 function showNotification(message, type = 'success') {
@@ -301,53 +302,117 @@ function addDish() {
     .catch(() => showNotification("Błąd dodawania dania", 'error'));
 }
 
+// === Menu Management ===
 function loadMenu() {
-  const container = document.getElementById("menu-list");
-  container.innerHTML = '<div class="loader-container"><span class="loader"></span> Ładowanie menu...</div>';
+  if (!isMenuVisible) {
+    toggleMenu();
+  } else {
+    const button = document.querySelector('#admin-panel > section:nth-child(5) button');
+    button.innerHTML = '<span class="loader"></span> Ładowanie...';
+    button.disabled = true;
+    
+    fetch("http://localhost:8000/menu/list")
+      .then(res => res.json())
+      .then(menu => {
+        const container = document.getElementById("menu-list");
+        container.innerHTML = "";
 
-  fetch("http://localhost:8000/menu/list")
-    .then(res => res.json())
-    .then(menu => {
-      container.innerHTML = "";
+        const table = document.createElement("table");
+        table.classList.add('animate__animated', 'animate__fadeIn');
+        
+        const header = document.createElement("tr");
+        header.innerHTML = "<th>Dzień</th><th>Nazwa</th><th>Opis</th><th>Cena</th><th>Akcje</th>";
+        table.appendChild(header);
 
-      const table = document.createElement("table");
-      table.classList.add('animate__animated', 'animate__fadeIn');
-      
-      const header = document.createElement("tr");
-      header.innerHTML = "<th>Dzień</th><th>Nazwa</th><th>Opis</th><th>Cena</th><th>Akcje</th>";
-      table.appendChild(header);
+        menu.forEach(item => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${item.day || 'Brak dnia'}</td>
+            <td>${item.name}</td>
+            <td>${item.description}</td>
+            <td>${item.price.toFixed(2)} zł</td>
+            <td>
+              <button onclick="editDish('${item.name.replace(/'/g, "\\'")}', '${item.description.replace(/'/g, "\\'")}', ${item.price}, '${item.day}')" class="ripple">Edytuj</button>
+              <button onclick="deleteDish('${item.name.replace(/'/g, "\\'")}')" class="ripple danger-btn">Usuń</button>
+            </td>
+          `;
+          table.appendChild(row);
+        });
 
-      menu.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${item.day || 'Brak dnia'}</td>
-          <td>${item.name}</td>
-          <td>${item.description}</td>
-          <td>${item.price.toFixed(2)} zł</td>
-          <td><button onclick="deleteDish('${item.name}')" class="ripple danger-btn">Usuń</button></td>
-        `;
-        table.appendChild(row);
+        container.appendChild(table);
+        button.textContent = 'Ukryj menu';
+        button.disabled = false;
+      })
+      .catch(() => {
+        showNotification("Błąd ładowania menu", 'error');
+        const button = document.querySelector('#admin-panel > section:nth-child(5) button');
+        button.textContent = 'Pokaż/Ukryj menu';
+        button.disabled = false;
       });
-
-      container.appendChild(table);
-    })
-    .catch(() => showNotification("Błąd ładowania menu", 'error'));
+  }
+}
+function editDish(name, description, price, day) {
+  // Escape single quotes in name to prevent JS errors
+  const escapedName = name.replace(/'/g, "\\'");
+  
+  // Wypełnij formularz edycji danymi dania
+  document.getElementById("edit-dish-name").value = escapedName;
+  document.getElementById("edit-dish-description").value = description;
+  document.getElementById("edit-dish-price").value = price;
+  document.getElementById("edit-dish-day").value = day;
+  
+  // Pokaż sekcję edycji
+  document.getElementById("edit-menu-section").style.display = "block";
+  
+  // Przewiń do sekcji edycji
+  document.getElementById("edit-menu-section").scrollIntoView({ behavior: 'smooth' });
 }
 
-function deleteDish(name) {
-  if (!confirm(`Czy na pewno chcesz usunąć "${name}"?`)) return;
+function cancelEditMenu() {
+  // Wyczyść formularz i ukryj sekcję edycji
+  document.getElementById("edit-dish-name").value = "";
+  document.getElementById("edit-dish-description").value = "";
+  document.getElementById("edit-dish-price").value = "";
+  document.getElementById("edit-dish-day").value = "Poniedziałek";
+  document.getElementById("edit-menu-section").style.display = "none";
+}
 
-  fetch("http://localhost:8000/menu/delete", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, username: loggedInUser })
-  })
-    .then(res => res.json())
-    .then(data => {
-      showNotification(data.msg, 'success');
-      loadMenu();
-    })
-    .catch(() => showNotification("Błąd usuwania dania", 'error'));
+async function saveEditedDish() {
+  const originalName = document.getElementById("edit-dish-name").value;
+  const newDescription = document.getElementById("edit-dish-description").value;
+  const newPrice = parseFloat(document.getElementById("edit-dish-price").value);
+  const newDay = document.getElementById("edit-dish-day").value;
+
+  if (!originalName || !newDescription || isNaN(newPrice)) {
+    showNotification("Wypełnij wszystkie pola", 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:8000/menu/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        original_name: originalName,
+        new_description: newDescription,
+        new_price: newPrice,
+        new_day: newDay,
+        username: loggedInUser
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Błąd podczas aktualizacji dania");
+    }
+
+    const data = await response.json();
+    showNotification(data.msg || "Danie zostało zaktualizowane", 'success');
+    cancelEditMenu();
+    loadMenu();
+  } catch (error) {
+    console.error("Błąd:", error);
+    showNotification(error.message, 'error');
+  }
 }
 
 // === Excel export ===
@@ -592,6 +657,60 @@ function toggleOrderSelection(event, orderId) {
   }
 }
 
+// === Menu Management ===
+function toggleMenu() {
+  const button = document.querySelector('#admin-panel > section:nth-child(5) button');
+  const container = document.getElementById("menu-list");
+  
+  if (isMenuVisible) {
+    container.innerHTML = "";
+    button.textContent = 'Pokaż/ukryj menu';
+    isMenuVisible = false;
+    return;
+  }
+
+  container.innerHTML = '<div class="loader-container"><span class="loader"></span> Ładowanie menu...</div>';
+  button.innerHTML = '<span class="loader"></span> Ładowanie...';
+  button.disabled = true;
+
+  fetch("http://localhost:8000/menu/list")
+    .then(res => res.json())
+    .then(menu => {
+      container.innerHTML = "";
+
+      const table = document.createElement("table");
+      table.classList.add('animate__animated', 'animate__fadeIn');
+      
+      const header = document.createElement("tr");
+      header.innerHTML = "<th>Dzień</th><th>Nazwa</th><th>Opis</th><th>Cena</th><th>Akcje</th>";
+      table.appendChild(header);
+
+      menu.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.day || 'Brak dnia'}</td>
+          <td>${item.name}</td>
+          <td>${item.description}</td>
+          <td>${item.price.toFixed(2)} zł</td>
+          <td>
+            <button onclick="editDish('${item.name.replace(/'/g, "\\'")}', '${item.description.replace(/'/g, "\\'")}', ${item.price}, '${item.day}')" class="ripple">Edytuj</button>
+            <button onclick="deleteDish('${item.name.replace(/'/g, "\\'")}')" class="ripple danger-btn">Usuń</button>
+          </td>
+        `;
+        table.appendChild(row);
+      });
+
+      container.appendChild(table);
+      button.textContent = 'Ukryj menu';
+      button.disabled = false;
+      isMenuVisible = true;
+    })
+    .catch(() => {
+      showNotification("Błąd ładowania menu", 'error');
+      button.textContent = 'Pokaż/ukryj menu';
+      button.disabled = false;
+    });
+}
 function toggleAllOrders(checkbox) {
   const checkboxes = document.querySelectorAll('#order-list input[type="checkbox"]:not(#select-all-orders)');
   const deleteSelectedBtn = document.getElementById("delete-selected-orders");

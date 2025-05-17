@@ -36,6 +36,7 @@ if (document.getElementById('order-week').value) {
 }
         
         document.querySelector(".logout-btn").style.display = "flex";
+	window.dispatchEvent(new Event('userLoggedIn'));
         document.querySelector(".logout-btn").classList.add('animate__animated', 'animate__fadeIn');
         
         loadMenu();
@@ -509,26 +510,37 @@ async function checkOrderExists(username, week) {
   return data.exists;
 }
 
-document.getElementById("orderForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-
-  const username = localStorage.getItem("username");
-  const week = getSelectedWeek(); // Twoja funkcja, która oblicza numer tygodnia
-
-  const exists = await checkOrderExists(username, week);
-  if (exists) {
-    document.getElementById("orderExistsMessage").style.display = "block";
-    disableForm();
-    return;
-  }
-
-  // jeśli nie istnieje, kontynuuj składanie zamówienia
-  submitOrder();
+document.addEventListener('DOMContentLoaded', function() {
+  fetchLoginMessage();
+  
+  // Dodajemy nasłuchiwanie po zalogowaniu, a nie od razu
+  window.addEventListener('userLoggedIn', function() {
+    const orderForm = document.getElementById("orderForm");
+    if (orderForm) {
+      orderForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const week = document.getElementById("order-week").value;
+        
+        if (await checkOrderExists(loggedInUser, week)) {
+          document.getElementById("orderExistsMessage").style.display = "block";
+          disableForm();
+          return;
+        }
+        
+        await submitOrder();
+      });
+    }
+  });
 });
 
 function disableForm() {
-  document.querySelectorAll("#orderForm input, #orderForm select, #orderForm button")
-    .forEach(el => el.disabled = true);
+  const form = document.getElementById("orderForm");
+  if (form) {
+    const elements = form.elements;
+    for (let i = 0; i < elements.length; i++) {
+      elements[i].disabled = true;
+    }
+  }
 }
 
 function hasExistingOrderForWeek(week) {
@@ -536,13 +548,33 @@ function hasExistingOrderForWeek(week) {
 }
 
 async function fetchLoginMessage() {
-  const res = await fetch("/message");
-  const data = await res.json();
-  document.getElementById("loginMessage").textContent = data.text;
+  const messageElement = document.getElementById("loginMessage");
+  
+  try {
+    const response = await fetch("http://localhost:8000/messages");
+    
+    if (!response.ok) {
+      throw new Error(`Błąd HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Ustawiamy tylko wiadomość z bazy danych
+    if (data.text) {
+      messageElement.textContent = data.text;
+      
+      // Dodajemy efekt pulsowania co 5 sekund
+      setInterval(() => {
+        messageElement.classList.add('animate__animated', 'animate__pulse');
+        setTimeout(() => {
+          messageElement.classList.remove('animate__animated', 'animate__pulse');
+        }, 1000);
+      }, 5000);
+    }
+    
+  } catch (error) {
+    console.error("Błąd pobierania wiadomości:", error);
+    // W przypadku błędu pozostawiamy element pusty (bez domyślnego tekstu)
+    messageElement.style.display = 'none';
+  }
 }
-
-window.addEventListener("DOMContentLoaded", () => {
-  fetchLoginMessage();
-});
-
-
